@@ -4,10 +4,16 @@ class SayaTubeVideo
 {
     private int id;
     private string title;
-    private int playCount;
+    public int playCount;
 
     public SayaTubeVideo(string title)
     {
+        if (title == null)
+            throw new ArgumentNullException("Title cannot be null.");
+
+        if (title.Length > 100)
+            throw new ArgumentException("Title length cannot be more than 100 characters.");
+
         Random random = new Random();
         this.id = random.Next(10000, 99999);
         this.title = title;
@@ -16,7 +22,20 @@ class SayaTubeVideo
 
     public void IncreasePlayCount(int count)
     {
-        this.playCount += count;
+        if (count <= 0)
+            throw new ArgumentOutOfRangeException("Count must be a positive integer.");
+
+        checked
+        {
+            try
+            {
+                this.playCount += count;
+            }
+            catch (OverflowException ex)
+            {
+                throw new InvalidOperationException("Play count exceeded the maximum limit.", ex);
+            }
+        }
     }
 
     public void PrintVideoDetails()
@@ -32,13 +51,32 @@ class Program
     static void Main(string[] args)
     {
         string videoTitle = "Tutorial Design By Contract – [NAMA_PRAKTIKAN]";
-        SayaTubeVideo video = new SayaTubeVideo(videoTitle);
+        SayaTubeVideo video = null;
 
-        video.PrintVideoDetails();
+        try
+        {
+            video = new SayaTubeVideo(videoTitle);
 
-        // tambahkan play count sebanyak 10
-        video.IncreasePlayCount(10);
+            // Test preconditions
+            // videoTitle = null; // uncomment to test null title precondition
+            // videoTitle = new string('a', 101); // uncomment to test title length precondition
 
-        //Console.WriteLine("\nSetelah ditambahkan 10, play count sekarang adalah {0}", video.playCount);
+            video.PrintVideoDetails();
+
+            // Test exception
+            // for (int i = 0; i < 10000000; i++) // uncomment to test overflow exception
+            // {
+            //     video.IncreasePlayCount(1);
+            // }
+
+            // Uncomment the line below to test IncreasePlayCount method
+            // video.IncreasePlayCount(100);
+
+            Console.WriteLine("\nAfter adding 100 play count, the new play count is {0}", video.playCount);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+        }
     }
 }
